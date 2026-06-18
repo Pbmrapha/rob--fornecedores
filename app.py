@@ -32,7 +32,6 @@ if st.button("🚀 Rodar robô"):
         fma = pd.read_excel(fma_file, dtype=str)
 
         # limpar CNPJ
-        for df in [principal, fm, fma]:
 for df in [principal, fm, fma]:
     df.columns = df.columns.str.strip()
 
