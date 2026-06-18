@@ -21,6 +21,16 @@ def limpar_cnpj(cnpj):
     return cnpj.zfill(14)
 
 # =========================
+# FUNÇÃO PARA ACHAR COLUNA
+# =========================
+def achar_coluna(df, palavras_chave):
+    for col in df.columns:
+        for palavra in palavras_chave:
+            if palavra in col.lower():
+                return col
+    return None
+
+# =========================
 # PROCESSAMENTO
 # =========================
 if st.button("🚀 Rodar robô"):
@@ -37,14 +47,11 @@ if st.button("🚀 Rodar robô"):
         for df in [principal, fm, fma]:
             df.columns = df.columns.str.strip()
 
-            # achar coluna de CNPJ automaticamente
-            cnpj_col = [col for col in df.columns if "cnpj" in col.lower()][0]
-
-            # limpar CNPJ
-            df[cnpj_col] = df[cnpj_col].apply(limpar_cnpj)
-
-            # padronizar nome da coluna
-            df.rename(columns={cnpj_col: "CNPJ"}, inplace=True)
+            # ---- CNPJ ----
+            cnpj_col = achar_coluna(df, ["cnpj"])
+            if cnpj_col:
+                df[cnpj_col] = df[cnpj_col].apply(limpar_cnpj)
+                df.rename(columns={cnpj_col: "CNPJ"}, inplace=True)
 
         # =========================
         # SEGMENTAÇÃO
@@ -72,10 +79,16 @@ if st.button("🚀 Rodar robô"):
         # remover duplicados
         final = final.drop_duplicates(subset=["CNPJ"], keep="first")
 
-        # ordenar
-        col_nome = "Razao Social"
-        final[col_nome] = final[col_nome].fillna("")
-        final = final.sort_values(by=col_nome)
+        # =========================
+        # ORDENAR POR NOME (ROBUSTO)
+        # =========================
+        nome_col = achar_coluna(final, ["razao", "nome"])
+
+        if nome_col:
+            final[nome_col] = final[nome_col].fillna("")
+            final = final.sort_values(by=nome_col)
+        else:
+            st.warning("Não achei coluna de nome/razão social para ordenar.")
 
         # =========================
         # DOWNLOAD
@@ -93,5 +106,4 @@ if st.button("🚀 Rodar robô"):
             )
 
     else:
-        st.error("Envie as 3 planilhas antes de rodar.")
         st.error("Envie as 3 planilhas antes de rodar.")
