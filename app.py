@@ -33,7 +33,13 @@ if st.button("🚀 Rodar robô"):
 
         # limpar CNPJ
         for df in [principal, fm, fma]:
-            df["CNPJ"] = df["CNPJ"].apply(limpar_cnpj)
+for df in [principal, fm, fma]:
+    df.columns = df.columns.str.strip()
+
+    cnpj_col = [col for col in df.columns if "cnpj" in col.lower()][0]
+    df[cnpj_col] = df[cnpj_col].apply(limpar_cnpj)
+
+    df.rename(columns={cnpj_col: "CNPJ"}, inplace=True)
 
         # segmentação
         principal["segmentacao"] = ""
