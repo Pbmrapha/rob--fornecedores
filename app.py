@@ -31,30 +31,42 @@ if st.button("🚀 Rodar robô"):
         fm = pd.read_excel(fm_file, dtype=str)
         fma = pd.read_excel(fma_file, dtype=str)
 
-        # limpar CNPJ
+        # =========================
+        # LIMPEZA E PADRONIZAÇÃO
+        # =========================
         for df in [principal, fm, fma]:
-    df.columns = df.columns.str.strip()
+            df.columns = df.columns.str.strip()
 
-    cnpj_col = [col for col in df.columns if "cnpj" in col.lower()][0]
-    df[cnpj_col] = df[cnpj_col].apply(limpar_cnpj)
+            # achar coluna de CNPJ automaticamente
+            cnpj_col = [col for col in df.columns if "cnpj" in col.lower()][0]
 
-    df.rename(columns={cnpj_col: "CNPJ"}, inplace=True)
+            # limpar CNPJ
+            df[cnpj_col] = df[cnpj_col].apply(limpar_cnpj)
 
-        # segmentação
+            # padronizar nome da coluna
+            df.rename(columns={cnpj_col: "CNPJ"}, inplace=True)
+
+        # =========================
+        # SEGMENTAÇÃO
+        # =========================
         principal["segmentacao"] = ""
 
         principal.loc[principal["CNPJ"].isin(fm["CNPJ"]), "segmentacao"] = "FM"
         principal.loc[principal["CNPJ"].isin(fma["CNPJ"]), "segmentacao"] = "FMA"
 
-        # novos fornecedores
+        # =========================
+        # NOVOS FORNECEDORES
+        # =========================
         todos = pd.concat([fm, fma], ignore_index=True)
-        novos = todos[~todos["CNPJ"].isin(principal["CNPJ"])]
+        novos = todos[~todos["CNPJ"].isin(principal["CNPJ"])].copy()
 
         novos["segmentacao"] = novos["CNPJ"].apply(
             lambda x: "FM" if x in fm["CNPJ"].values else "FMA"
         )
 
-        # juntar tudo
+        # =========================
+        # JUNTAR TUDO
+        # =========================
         final = pd.concat([principal, novos], ignore_index=True)
 
         # remover duplicados
@@ -65,7 +77,9 @@ if st.button("🚀 Rodar robô"):
         final[col_nome] = final[col_nome].fillna("")
         final = final.sort_values(by=col_nome)
 
-        # download
+        # =========================
+        # DOWNLOAD
+        # =========================
         st.success("Processo concluído!")
 
         output_file = "planilha_final.xlsx"
@@ -79,4 +93,5 @@ if st.button("🚀 Rodar robô"):
             )
 
     else:
+        st.error("Envie as 3 planilhas antes de rodar.")
         st.error("Envie as 3 planilhas antes de rodar.")
