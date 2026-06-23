@@ -20,7 +20,7 @@ fma_file = st.file_uploader("Planilha FMA", type=["xlsx"])
 # =========================
 
 def limpar_cnpj(cnpj):
-if pd.isna(cnpj):
+    if pd.isna(cnpj):
 return ""
 cnpj = str(cnpj)
 cnpj = ''.join(filter(str.isdigit, cnpj))
